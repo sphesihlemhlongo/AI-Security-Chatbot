@@ -17,7 +17,7 @@ app = FastAPI(openapi_url=None, docs_url=None)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://67fa4ca3fc89490b8291e196--ciphergenix.netlify.app/"],  # Add your frontend URL here
+    allow_origins=["*"],  # Add your frontend URL here
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Make sure OPTIONS is included
     allow_headers=["*"],
@@ -30,6 +30,10 @@ client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 # Pydantic model for input
 class UserPrompt(BaseModel):
     prompt: str
+
+@app.get("/")
+def home():
+    return {"message": "CipherGenix backend is live"}
 
 @app.post("/chat/")
 def chat_with_ciphergenix(user_prompt: UserPrompt):
