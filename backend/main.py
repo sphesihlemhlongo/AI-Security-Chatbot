@@ -34,6 +34,7 @@ class UserPrompt(BaseModel):
 def chat_with_ciphergenix(user_prompt: UserPrompt):
     """ Generates prompt and gets response from Gemini
     """
+
     try:
         full_prompt = f"""You are CipherGenix, a expert AI Security Engineer with deep knowledge in cybersecurity, information security, network security, application security, and ethical hacking. Your role is to provide professional assistance, guidance, and solutions to security-related problems only.
 
@@ -72,11 +73,35 @@ Remember: Your goal is to help users improve their security posture through educ
             model="gemini-2.0-flash",
             contents=[full_prompt]
         )
+        ai_reply = response.text.strip()
+
+        # Save to history
+        chat_entry = {
+            "timestamp": datetime.utcnow().isoformat(),
+            "user_prompt": user_prompt.prompt,
+            "ciphergenix_response": ai_reply
+        }
+
+        with open("chat_logs/history.jsonl", "a") as log_file:
+            log_file.write(json.dumps(chat_entry) + "\n")
+
         return {
-            "ciphergenix_response": response.text.strip()
+            "ciphergenix_response": ai_reply
         }
     except Exception as e:
         return {
             "ciphergenix_response": "CipherGenix ran into an issue processing your request.",
             "error": str(e)
         }
+
+@app.get("/chat/history")
+def get_chat_history():
+    """Admin can use to view the history logs"""
+    history = []
+    try:
+        with open("chat_logs/history.jsonl", "r") as log_file:
+            for line in log_file:
+                history.append(json.loads(line.strip()))
+    except FileNotFoundError:
+        return {"history": []}
+    return {"history": history}
