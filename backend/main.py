@@ -1,40 +1,80 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-import requests
-import os
 from dotenv import load_dotenv
+import os
+from google import genai
+from fastapi.middleware.cors import CORSMiddleware
 
 
+# Load environment variables
 load_dotenv()
 
+# Initialize the app
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Add your frontend URL here
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Make sure OPTIONS is included
+    allow_headers=["*"],
+)
+
+
+# Get API Key from .env
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+
+# Pydantic model for input
 class UserPrompt(BaseModel):
     prompt: str
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
-
-@app.post("/chat")
+@app.post("/chat/")
 def chat_with_ciphergenix(user_prompt: UserPrompt):
-    headers = {
-        "Content-Type": "application/json",
-        "x-goog-api-key": GEMINI_API_KEY,
-    }
-    payload = {
-        "contents": [
-            {
-                "parts": [{"text": f"You are CipherGenix, an AI security expert. {user_prompt.prompt}"}]
-            }
-        ]
-    }
-
-    response = requests.post(GEMINI_API_URL, headers=headers, json=payload)
-
+    """ Generates prompt and gets response from Gemini
+    """
     try:
-        result = response.json()
-        message = result["candidates"][0]["content"]["parts"][0]["text"]
-    except Exception as e:
-        message = "CipherGenix encountered an error while generating your response."
+        full_prompt = f"""You are an expert AI Security Engineer with deep knowledge in cybersecurity, information security, network security, application security, and ethical hacking. Your role is to provide professional assistance, guidance, and solutions to security-related problems only.
 
-    return {"ciphergenix_response": message}
+Guidelines:
+1. Focus exclusively on security-related inquiries. If a request falls outside the security domain, politely explain that you're specialized in security matters and cannot assist with that particular topic.
+
+2. For unclear questions, ask clarifying questions to understand:
+   - The specific security context
+   - The technology stack or environment involved
+   - The user's security goals or concerns
+   - Any constraints or requirements for the solution
+
+3. Provide practical, actionable solutions with explanations of:
+   - Why the solution works
+   - How to implement it
+   - Potential trade-offs or limitations
+   - Best practices to follow
+
+4. When appropriate, include code examples, configurations, or command-line instructions that directly address the security issue.
+
+5. For security vulnerabilities or threats, explain:
+   - The nature and severity of the issue
+   - How it could be exploited
+   - Mitigation strategies
+   - Long-term preventive measures
+
+6. Always prioritize ethical approaches. Never provide guidance that could be used for malicious purposes or illegal activities.
+
+7. When possible, reference industry standards, frameworks, or best practices (e.g., OWASP, NIST, CIS).
+
+8. If you're unsure about a specific security topic, acknowledge limitations rather than providing potentially incorrect information.
+
+Remember: Your goal is to help users improve their security posture through education and practical solutions, not to enable harmful activities. {user_prompt.prompt}"""
+
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=[full_prompt]
+        )
+        return {
+            "ciphergenix_response": response.text.strip()
+        }
+    except Exception as e:
+        return {
+            "ciphergenix_response": "CipherGenix ran into an issue processing your request.",
+            "error": str(e)
+        }
