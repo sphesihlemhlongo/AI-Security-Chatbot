@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from dotenv import load_dotenv
 import os
+import json
+from datetime import datetime
 from google import genai
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -33,7 +35,7 @@ def chat_with_ciphergenix(user_prompt: UserPrompt):
     """ Generates prompt and gets response from Gemini
     """
     try:
-        full_prompt = f"""You are an expert AI Security Engineer with deep knowledge in cybersecurity, information security, network security, application security, and ethical hacking. Your role is to provide professional assistance, guidance, and solutions to security-related problems only.
+        full_prompt = f"""You are CipherGenix, a expert AI Security Engineer with deep knowledge in cybersecurity, information security, network security, application security, and ethical hacking. Your role is to provide professional assistance, guidance, and solutions to security-related problems only.
 
 Guidelines:
 1. Focus exclusively on security-related inquiries. If a request falls outside the security domain, politely explain that you're specialized in security matters and cannot assist with that particular topic.
