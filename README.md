@@ -45,5 +45,5 @@ Whether you're a startup founder, security analyst, or someone who clicked a sus
 ### 1. Clone the Repo
 
 ```bash
-git clone https://github.com/yourusername/sentinelbot.git
-cd sentinelbot
+git clone git@github.com:sphesihlemhlongo/AI-Security-Chatbot.git
+cd AI-Security-Chatbot
