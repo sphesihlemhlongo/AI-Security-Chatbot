@@ -15,7 +15,7 @@ const ChatBox = () => {
     if (!prompt.trim()) return;
     setLoading(true);
     try {
-      const res = await axios.post('https://web-production-8e40c.up.railway.app/chat/', { prompt });
+      const res = await axios.post('https://ciphergenixbackend.vercel.app/chat', { prompt });
       setResponse(res.data.ciphergenix_response);
     } catch (error) {
       setResponse("CipherGenix could not process your request.");
